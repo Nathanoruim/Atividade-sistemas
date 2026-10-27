@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoPessoa {
+  SOLICITANTE
+  TECNICO
+}
+enum Prioridade {
+  BAIXA
+  MEDIA
+  ALTA
+  CRITICA
+}
+enum SituacaoChamado {
+  ABERTO
+  EM_ATENDIMENTO
+  RESOLVIDO
+  FECHADO
+  CANCELADO
+}
+
+model Pessoa {
+  id Int @id @default(autoincrement())
+  nome String @db.VarChar(150)
+  email String @unique @db.VarChar(254)
+  tipo TipoPessoa
+  ativo Boolean @default(true)
+  chamadosCriados Chamado[] @relation("Solicitante")
+  chamadosAtribuidos Chamado[] @relation("Tecnico")
+  comentarios Comentario[]
+  criadoEm DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model TipoProblema {
+  id Int @id @default(autoincrement())
+  nome String @unique @db.VarChar(120)
+  ativo Boolean @default(true)
+  chamados Chamado[]
+  criadoEm DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model Chamado {
+  id Int @id @default(autoincrement())
+  titulo String @db.VarChar(100)
+  descricao String @db.Text
+  prioridade Prioridade @default(MEDIA)
+  situacao SituacaoChamado @default(ABERTO)
+  solicitanteId Int
+  tecnicoId Int?
+  tipoProblemaId Int
+  resolvidoEm DateTime?
+  criadoEm DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  solicitante Pessoa @relation("Solicitante", fields: [solicitanteId], references: [id], onDelete: Restrict)
+  tecnico Pessoa? @relation("Tecnico", fields: [tecnicoId], references: [id], onDelete: Restrict)
+  tipoProblema TipoProblema @relation(fields: [tipoProblemaId], references: [id], onDelete: Restrict)
+  comentarios Comentario[]
+  @@index([situacao, prioridade])
+  @@index([solicitanteId])
+  @@index([tecnicoId, situacao])
+  @@index([tipoProblemaId])
+}
+
+model Comentario {
+  id Int @id @default(autoincrement())
+  conteudo String @db.Text
+  chamadoId Int
+  autorId Int
+  criadoEm DateTime @default(now())
+  chamado Chamado @relation(fields: [chamadoId], references: [id], onDelete: Restrict)
+  autor Pessoa @relation(fields: [autorId], references: [id], onDelete: Restrict)
+  @@index([chamadoId, criadoEm])
+  @@index([autorId])
+}
