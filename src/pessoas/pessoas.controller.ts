@@ -4,7 +4,7 @@ import { CriarPessoaDto, AtualizarPessoaDto } from './pessoas.dto';
 import { TipoPessoa } from '@prisma/client';
 @Controller('pessoas')
 export class PessoasController {
-  constructor(private service: PessoasService) {}
+  constructor(private service: PessoasService) { }
   @Post() criar(@Body() dto: CriarPessoaDto) { return this.service.criar(dto); }
   @Get() listar(@Query('ativo', new ParseBoolPipe({ optional: true })) ativo?: boolean, @Query('tipo', new ParseEnumPipe(TipoPessoa, { optional: true })) tipo?: TipoPessoa) { return this.service.listar(ativo, tipo); }
   @Get(':id') buscar(@Param('id', ParseIntPipe) id: number) { return this.service.buscar(id); }
